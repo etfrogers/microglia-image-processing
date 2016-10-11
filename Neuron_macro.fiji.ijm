@@ -10,7 +10,7 @@ macro "Process DAB Neurons" {
 	close();
 	selectWindow(tt+"-(Colour_3)");
 	close();
-	selectWindow("TN347_1.tif-(Colour_2)");
+	selectWindow(tt+"-(Colour_2)");
 	setAutoThreshold("Huang");
 	//run("Threshold...");
 	setOption("BlackBackground", false);
@@ -19,11 +19,11 @@ macro "Process DAB Neurons" {
 	run("Make Binary");
 	run("Close-");
 	run("Set Measurements...", "area mean standard modal min centroid center perimeter bounding fit shape feret's integrated median skewness kurtosis area_fraction stack redirect=" + tt + " decimal=3");
-	run("Analyze Particles...", "size=200-Infinity display exclude clear add");
+	run("Analyze Particles...", "size=100-Infinity display exclude clear add");
 	close();
 	selectWindow(tt);
 	roiManager("Show None");
-	roiManager("Show All");
+	//roiManager("Show All");
 	dotPos = indexOf(tt, '.');
 	if (dotPos != lengthOf(tt)-4) {
 		Dialog.create("Warning: bad file extension")
@@ -31,5 +31,27 @@ macro "Process DAB Neurons" {
 		Dialog.show();
 	}
 	saveAs("Results", dir + "\\" + substring(tt, 0, dotPos) + "_roi_stats.csv");
+	Overlay.remove();
+	Overlay.clear();
+	for (ii = 0; ii < nResults; ii++) {
+		ID = ii+1;
+		X = getResult("X", ii);
+		Y = getResult("Y", ii);
+		Area = getResult("Area", ii);
+		Width = getResult("Width", ii);
+		Height = getResult("Height", ii);
+		density = Area/(Width*Height);
+		if (density > 0.3)
+			col = 'red';
+		else
+			col = 'yellow';
 		
+		roiManager("select", ii)
+		Overlay.addSelection(col)
+		setColor(col);
+		Overlay.drawRect(getResult("BX", ii), getResult("BY", ii), Width, Height)
+		setColor('yellow');
+		Overlay.drawString(ID+"\n"+density, X, Y, 0)
+	}
+	Overlay.show();
 }
