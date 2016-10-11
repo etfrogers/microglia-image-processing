@@ -4,6 +4,7 @@ macro "Process DAB Neurons" {
 	run("Set Scale...", "distance=0 known=0 pixel=1 unit=pixel");
 
 	tt = getTitle();
+	//print(tt)
 	dir = getDirectory("image");
 	run("Colour Deconvolution", "vectors=[H DAB] hide");
 	selectWindow(tt+"-(Colour_1)");
@@ -18,7 +19,7 @@ macro "Process DAB Neurons" {
 	//run("Close");
 	run("Make Binary");
 	run("Close-");
-	run("Set Measurements...", "area mean standard modal min centroid center perimeter bounding fit shape feret's integrated median skewness kurtosis area_fraction stack redirect=" + tt + " decimal=3");
+	run("Set Measurements...", "area mean standard modal min centroid center perimeter bounding fit shape feret's integrated median skewness kurtosis area_fraction stack redirect='" + tt + "' decimal=3");
 	run("Analyze Particles...", "size=100-Infinity display exclude clear add");
 	close();
 	selectWindow(tt);
