@@ -3,6 +3,8 @@ macro "Process DAB Neurons" {
 	//remove the scale and use pixels instead
 	run("Set Scale...", "distance=0 known=0 pixel=1 unit=pixel");
 
+	//selectWindow("Sholl Results")
+	//run("Close");
 	tt = getTitle();
 	//print(tt)
 	inWidth = getWidth;
@@ -58,16 +60,16 @@ macro "Process DAB Neurons" {
 	run("Make Binary");
 	run("Close-");
 	run("Set Measurements...", "area mean standard modal min centroid center perimeter bounding fit shape feret's integrated median skewness kurtosis area_fraction stack redirect='" + tt + "' decimal=3");
-	run("Analyze Particles...", "size=100-Infinity display exclude clear add");
+	run("Analyze Particles...", "size=200-Infinity display exclude clear add");
 	close();
 	IJ.renameResults("TempResults"); 
 	
 	run("Set Measurements...", "integrated redirect='" + tt + "Body mask' decimal=3");
 	roiManager("measure")
-	SomaArea = newArray(nResults);
+	SomaAreaAll = newArray(nResults);
 	
 	for (ii = 0; ii < nResults; ii++) {
-		SomaArea[ii] = getResult("IntDen", ii)/255;
+		SomaAreaAll[ii] = getResult("IntDen", ii)/255;
 	}
 	
 	selectWindow("TempResults"); 
@@ -84,7 +86,9 @@ macro "Process DAB Neurons" {
 		Dialog.show();
 	}
 	saveAs("Results", dir + "\\" + substring(tt, 0, dotPos) + "_roi_stats.csv");
-	done = false;
+	IdOut = newArray(0);
+	SomaArea = newArray(0);
+	FeretDiameter = newArray(0);
 	for (ii = 0; ii < nResults; ii++) {
 		ID = ii+1;
 		X = getResult("X", ii);
@@ -92,28 +96,45 @@ macro "Process DAB Neurons" {
 		Area = getResult("Area", ii);
 		Width = getResult("Width", ii);
 		Height = getResult("Height", ii);
+		FeretDiaLocal = getResult("Feret", ii);
 		density = Area/(Width*Height);
 		
-		if (SomaArea[ii] < 100) {
+		if (SomaAreaAll[ii] < 100) {
 			col = 'red';
 		}
 		else {
 			col = 'yellow';
-			if (!done) {
-				roiManager("select", ii)
-				run("Create Mask");
-				close;
-				//done = true;
-				
-			}
+			
+			roiManager("select", ii)
+			run("Create Mask");
+			makeLine(X, Y, X, Y+FeretDiaLocal);
+			run("Sholl Analysis...", "starting=10  radius_step=0 _=[Left of line] #_samples=1 integration=Mean enclosing=1 #_primary=[] fit linear polynomial=[Best fitting degree] most semi-log normalizer=Area ");			
+			close; // Sholl plot 1
+			close; // Sholl plot 2
+			close; // original mask
+			FeretDiameter = Array.concat(FeretDiameter, FeretDiaLocal);
+			SomaArea = Array.concat(SomaArea, SomaAreaAll[ii]);
+			IdOut = Array.concat(IdOut, ID);
+			Overlay.drawString(ID, X, Y, 0)
 		}
 		roiManager("select", ii)
 		Overlay.addSelection(col)
 		setColor(col);
 		//Overlay.drawRect(getResult("BX", ii), getResult("BY", ii), Width, Height)
 		setColor('yellow');
-		//Overlay.drawString(ID+"\n"+density, X, Y, 0)
+		//Overlay.drawString(ID, X, Y, 0)
 	}
 	Overlay.show();
-	
+
+	selectWindow("Sholl Results"); 
+   	IJ.renameResults("Results"); 
+   	MaxBranches = newArray(0);
+   	MeanBranches = newArray(0);
+   	
+	for (ii = 0; ii < lengthOf(IdOut); ii++) {
+		MaxBranches = Array.concat(MaxBranches, getResult("Max inters.", ii));
+		MeanBranches = Array.concat(MeanBranches, getResult("Mean inters.", ii));
+	}
+
+	Array.show("Neuron Properties", IdOut, SomaArea, FeretDiameter, MaxBranches, MeanBranches);
 }
