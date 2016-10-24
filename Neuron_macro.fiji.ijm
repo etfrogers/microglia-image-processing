@@ -33,11 +33,32 @@ macro "Process DAB Neurons [q]" {
 		tt = getTitle(); //need to get it again as it has changed after Stack to RGB 
 	}
 	
+	run("Duplicate...", "title='"+tt+" processed'");
+	tt = getTitle(); //need to get it again as it has changed after Stack to RGB 
+
+	dotPos = indexOf(tt, '.');
+	base_file = substring(tt, 0, dotPos);
+	
+	run("Set Measurements...", "area redirect=None decimal=3");	
+	roiManager("reset");
+	roiManager("Add");
+	roiManager("select", 0);
+	roiManager("save selected", dir + base_file + '_processed_roi.zip');
+	
+	run("Measure");
+	//TODO Save area
+	run("Make Inverse");
+	//run("Fill", "slice");
+	run("Clear");
+	run("Select None");
+
 	run("Colour Deconvolution", "vectors=[H DAB] hide");
 
 	//Analyse H
 	selectWindow(tt+"-(Colour_1)");
-	setAutoThreshold("Huang");
+	roiManager("reset");
+	roiManager("open", dir + base_file + '_processed_roi.zip');
+	roiManager("select", 0)
 	setAutoThreshold("Triangle");
 	setThreshold(0, 192);
 	//run("Threshold...");
@@ -75,13 +96,17 @@ macro "Process DAB Neurons [q]" {
 
 	//analyse DAB
 	selectWindow(tt+"-(Colour_2)");
+	roiManager("reset");
+	roiManager("open", dir + base_file + '_processed_roi.zip');
+	roiManager("select", 0);
 	setAutoThreshold("Huang");
-	//run("Threshold...");
 	setOption("BlackBackground", false);
 	run("Convert to Mask");
-	//run("Close");
 	run("Make Binary");
 	run("Close-");
+	roiManager("reset");
+	roiManager("open", dir + base_file + '_processed_roi.zip');
+	roiManager("select", 0);
 	run("Set Measurements...", "area mean standard modal min centroid center perimeter bounding fit shape feret's integrated median skewness kurtosis area_fraction stack redirect='" + tt + "' decimal=3");
 	run("Analyze Particles...", "size=200-Infinity display exclude clear add");
 	close();
@@ -102,15 +127,8 @@ macro "Process DAB Neurons [q]" {
 	selectWindow(tt);
 	roiManager("Show None");
 	//roiManager("Show All");
-	dotPos = indexOf(tt, '.');
-	/*
-	if (dotPos != lengthOf(tt)-4) {
-		Dialog.create("Warning: bad file extension")
-		Dialog.addMessage("Expected single . in filename and 3 character extension.\nAssuming filename is " + substring(tt, 0, dotPos));
-		Dialog.show();
-	}
-	*/
-	saveAs("Results", dir + "\\" + substring(tt, 0, dotPos) + "_roi_stats.csv");
+	
+	saveAs("Results", dir + "\\" + base_file + "_roi_stats.csv");
 	IdOut = newArray(0);
 	SomaArea = newArray(0);
 	FeretDiameter = newArray(0);
