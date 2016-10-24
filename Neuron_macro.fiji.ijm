@@ -98,6 +98,7 @@ macro "Process DAB Neurons [q]" {
 		
 	}
 	newImage(tt + "Body mask" , "8-bit black", procWidth, procHeight, 1);
+	
 	roiManager("deselect"); 
 	roiManager("Fill");
 	
@@ -177,17 +178,25 @@ macro "Process DAB Neurons [q]" {
 		//Overlay.drawString(ID, X, Y, 0)
 	}
 	Overlay.show();
-
-	selectWindow("Sholl Results"); 
-   	IJ.renameResults("Results"); 
-   	MaxBranches = newArray(0);
-   	MeanBranches = newArray(0);
+	if (isOpen("Sholl Results"))
+		selectWindow("Sholl Results"); 
+   		IJ.renameResults("Results"); 
+   		MaxBranches = newArray(0);
+   		MeanBranches = newArray(0);
    	
-	for (ii = 0; ii < lengthOf(IdOut); ii++) {
-		MaxBranches = Array.concat(MaxBranches, getResult("Max inters.", ii));
-		MeanBranches = Array.concat(MeanBranches, getResult("Mean inters.", ii));
+		for (ii = 0; ii < lengthOf(IdOut); ii++) {
+			MaxBranches = Array.concat(MaxBranches, getResult("Max inters.", ii));
+			MeanBranches = Array.concat(MeanBranches, getResult("Mean inters.", ii));
+		}
+
+		Array.show("Neuron Properties", IdOut, SomaArea, FeretDiameter, MaxBranches, MeanBranches);
+		saveAs("Results", dir + "\\" + substring(tt, 0, dotPos) + "_microglia_properties.csv");
+	}_
+	else 
+	{
+		Dialog.create("Warning: No good microglia found")
+		Dialog.addMessage("No suitable microglia found for processing");
+		Dialog.show();
 	}
 
-	Array.show("Neuron Properties", IdOut, SomaArea, FeretDiameter, MaxBranches, MeanBranches);
-	saveAs("Results", dir + "\\" + substring(tt, 0, dotPos) + "_neuron_properties.csv");
-}
+
