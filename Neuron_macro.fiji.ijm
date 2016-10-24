@@ -4,19 +4,26 @@ macro "Process DAB Neurons [q]" {
 	
 	//selectWindow("Sholl Results")
 	//run("Close");
-	tt = getTitle();
+	tt = getTitle(); //need to get it again as it has changed after Stack to RGB 
 	if (endsWith(tt, '.tif')) {
 		run("Set Scale...", "distance=0 known=0 pixel=1 unit=pixel");
 	}
 
 	//print(tt)
-	inWidth = getWidth;
-	inHeight = getHeight;
+	getDimensions(inWidth, inHeight, inChannels, inSlices, inFrames);
+	//inWidth = getWidth;
+	//inHeight = getHeight;
 	dir = getDirectory("image");
 	if (lengthOf(dir)==0) {
 		dir = getInfo("Location");
 		path_end = lastIndexOf(dir, '\\');
 		dir = substring(dir,0,path_end);
+		
+	}
+
+	if (inChannels == 3) {
+		run("Stack to RGB");
+		tt = getTitle(); //need to get it again as it has changed after Stack to RGB 
 	}
 	
 	run("Colour Deconvolution", "vectors=[H DAB] hide");
