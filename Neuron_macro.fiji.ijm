@@ -89,11 +89,13 @@ macro "Process DAB Neurons [q]" {
 	roiManager("Show None");
 	//roiManager("Show All");
 	dotPos = indexOf(tt, '.');
+	/*
 	if (dotPos != lengthOf(tt)-4) {
 		Dialog.create("Warning: bad file extension")
 		Dialog.addMessage("Expected single . in filename and 3 character extension.\nAssuming filename is " + substring(tt, 0, dotPos));
 		Dialog.show();
 	}
+	*/
 	saveAs("Results", dir + "\\" + substring(tt, 0, dotPos) + "_roi_stats.csv");
 	IdOut = newArray(0);
 	SomaArea = newArray(0);
