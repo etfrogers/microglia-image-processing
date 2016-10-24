@@ -1,3 +1,14 @@
+
+function open_roi(file) {
+	roiManager("reset");
+	roiManager("open", file);
+	roiManager("select", 0);
+	Roi.getCoordinates(x, y);
+	Array.getStatistics(x, minx); 
+	Array.getStatistics(y, miny); 
+	roiManager("translate", -minx, -miny);
+}
+
 macro "Process DAB Neurons [q]" {
 	//currently scale is set to inches. This is meaningless, so let's 
 	//remove the scale and use pixels instead
@@ -56,9 +67,7 @@ macro "Process DAB Neurons [q]" {
 
 	//Analyse H
 	selectWindow(tt+"-(Colour_1)");
-	roiManager("reset");
-	roiManager("open", dir + base_file + '_processed_roi.zip');
-	roiManager("select", 0)
+	open_roi(dir + base_file + '_processed_roi.zip');
 	setAutoThreshold("Triangle");
 	setThreshold(0, 192);
 	//run("Threshold...");
@@ -96,17 +105,13 @@ macro "Process DAB Neurons [q]" {
 
 	//analyse DAB
 	selectWindow(tt+"-(Colour_2)");
-	roiManager("reset");
-	roiManager("open", dir + base_file + '_processed_roi.zip');
-	roiManager("select", 0);
+	open_roi(dir + base_file + '_processed_roi.zip');
 	setAutoThreshold("Huang");
 	setOption("BlackBackground", false);
 	run("Convert to Mask");
 	run("Make Binary");
 	run("Close-");
-	roiManager("reset");
-	roiManager("open", dir + base_file + '_processed_roi.zip');
-	roiManager("select", 0);
+	open_roi(dir + base_file + '_processed_roi.zip');
 	run("Set Measurements...", "area mean standard modal min centroid center perimeter bounding fit shape feret's integrated median skewness kurtosis area_fraction stack redirect='" + tt + "' decimal=3");
 	run("Analyze Particles...", "size=200-Infinity display exclude clear add");
 	close();
