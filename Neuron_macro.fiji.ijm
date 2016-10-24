@@ -17,6 +17,13 @@ macro "Process DAB Neurons [q]" {
 	if (lengthOf(dir)==0) {
 		dir = getInfo("Location");
 		path_end = lastIndexOf(dir, '\\');
+		if (path_end == -1)
+		{
+			Dialog.create("Error: Could not get path")
+			Dialog.addMessage("Error finding path. Did you use the select the right window?");
+			Dialog.show();
+			return;
+		}
 		dir = substring(dir,0,path_end);
 		
 	}
