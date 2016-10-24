@@ -151,6 +151,11 @@ macro "Process DAB Neurons [q]" {
 		Height = getResult("Height", ii);
 		FeretDiaLocal = getResult("Feret", ii);
 		density = Area/(Width*Height);
+
+		Xp = X; toUnscaled(Xp);
+		Yp = Y; toUnscaled(Yp);
+		FeretDiap = FeretDiaLocal; toScaled(FeretDiap);
+		
 		
 		if (SomaAreaAll[ii] < 100) {
 			col = 'red';
@@ -160,15 +165,16 @@ macro "Process DAB Neurons [q]" {
 			
 			roiManager("select", ii)
 			run("Create Mask");
-			makeLine(X, Y, X, Y+FeretDiaLocal);
-			run("Sholl Analysis...", "starting=10  radius_step=0 _=[Left of line] #_samples=1 integration=Mean enclosing=1 #_primary=[] fit linear polynomial=[Best fitting degree] most semi-log normalizer=Area ");			
-			close; // Sholl plot 1
-			close; // Sholl plot 2
+			//makeline uses pixel units, but X,Y,FeretDia are in image units.
+			makeLine(Xp, Yp, Xp, Yp+FeretDiaLocal);
+			run("Sholl Analysis...", "starting=1  radius_step=0 _=[Left of line] #_samples=1 integration=Mean enclosing=1 #_primary=[] fit linear polynomial=[Best fitting degree] most semi-log normalizer=Area ");			
+			close; // Sholl plot 1 
+			close; // Sholl plot 2 
 			close; // original mask
-			FeretDiameter = Array.concat(FeretDiameter, FeretDiaLocal);
+			FeretDiameter = Array.concat(FeretDiameter, FeretDiap);
 			SomaArea = Array.concat(SomaArea, SomaAreaAll[ii]);
 			IdOut = Array.concat(IdOut, ID);
-			Overlay.drawString(ID, X, Y, 0)
+			Overlay.drawString(ID, Xp, Yp, 0)
 		}
 		roiManager("select", ii)
 		Overlay.addSelection(col)
@@ -189,6 +195,12 @@ macro "Process DAB Neurons [q]" {
 			MeanBranches = Array.concat(MeanBranches, getResult("Mean inters.", ii));
 		}
 
+		//SomaArea was calculated on a mask image with no size, so is in pixels.
+		//Need to convert to real units, by calling toScaled twice (as once is a length conversion)
+		// only the x,y version which tajkes two nputs handles arrays, so use a dummy
+		dummy = newArray(lengthOf(SomaArea)); Array.fill(dummy, 0);
+		toScaled(SomaArea, dummy); toScaled(SomaArea, dummy);
+		
 		Array.show("Neuron Properties", IdOut, SomaArea, FeretDiameter, MaxBranches, MeanBranches);
 		saveAs("Results", dir + "\\" + substring(tt, 0, dotPos) + "_microglia_properties.csv");
 	}_
