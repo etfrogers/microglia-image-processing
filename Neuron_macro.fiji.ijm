@@ -13,6 +13,12 @@ macro "Process DAB Neurons" {
 	inWidth = getWidth;
 	inHeight = getHeight;
 	dir = getDirectory("image");
+	if (lengthOf(dir)==0) {
+		dir = getInfo("Location");
+		path_end = lastIndexOf(dir, '\\');
+		dir = substring(dir,0,path_end);
+	}
+	
 	run("Colour Deconvolution", "vectors=[H DAB] hide");
 
 	//Analyse H
