@@ -22,8 +22,7 @@ macro "Process DAB Neurons [q]" {
 
 	//print(tt)
 	getDimensions(inWidth, inHeight, inChannels, inSlices, inFrames);
-	//inWidth = getWidth;
-	//inHeight = getHeight;
+	
 	dir = getDirectory("image");
 	if (lengthOf(dir)==0) {
 		dir = getInfo("Location");
@@ -45,6 +44,8 @@ macro "Process DAB Neurons [q]" {
 	}
 	
 	run("Duplicate...", "title='"+tt+" processed'");
+	procWidth = getWidth;
+	procHeight = getHeight;
 	tt = getTitle(); //need to get it again as it has changed after Stack to RGB 
 
 	dotPos = indexOf(tt, '.');
@@ -54,6 +55,7 @@ macro "Process DAB Neurons [q]" {
 	roiManager("Add");
 	roiManager("select", 0);
 	roiManager("save selected", dir + base_file + '_processed_roi.zip');
+	
 	
 	run("Set Measurements...", "area redirect=None decimal=3");	
 	run("Measure");
@@ -93,7 +95,7 @@ macro "Process DAB Neurons [q]" {
 		Overlay.addSelection(col)
 		
 	}
-	newImage(tt + "Body mask" , "8-bit black", inWidth, inHeight, 1);
+	newImage(tt + "Body mask" , "8-bit black", procWidth, procHeight, 1);
 	roiManager("deselect"); 
 	roiManager("Fill");
 	
