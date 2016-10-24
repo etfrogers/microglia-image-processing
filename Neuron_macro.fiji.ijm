@@ -38,6 +38,13 @@ macro "Process DAB Neurons [q]" {
 		
 	}
 
+	if (selectionType() == -1)
+	{
+		Dialog.create("Warning: No selection")
+		Dialog.addMessage("There is no region of interest selected. Select OK to use whole image, or cancel to abort");
+		Dialog.show();
+	}
+
 	roiManager("reset");
 	roiManager("Add");
 	roiManager("select", 0);
