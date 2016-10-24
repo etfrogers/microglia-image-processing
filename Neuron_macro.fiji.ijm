@@ -1,11 +1,14 @@
 macro "Process DAB Neurons" {
 	//currently scale is set to inches. This is meaningless, so let's 
 	//remove the scale and use pixels instead
-	run("Set Scale...", "distance=0 known=0 pixel=1 unit=pixel");
-
+	
 	//selectWindow("Sholl Results")
 	//run("Close");
 	tt = getTitle();
+	if (endsWith(tt, '.tif')) {
+		run("Set Scale...", "distance=0 known=0 pixel=1 unit=pixel");
+	}
+
 	//print(tt)
 	inWidth = getWidth;
 	inHeight = getHeight;
