@@ -137,7 +137,7 @@ macro "Process DAB Neurons [q]" {
 	roiManager("Show None");
 	//roiManager("Show All");
 	
-	saveAs("Results", dir + "\\" + base_file + "_roi_stats.csv");
+	//saveAs("Results", dir + "\\" + base_file + "_roi_stats.csv");
 	IdOut = newArray(0);
 	SomaArea = newArray(0);
 	FeretDiameter = newArray(0);
