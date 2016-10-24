@@ -148,4 +148,5 @@ macro "Process DAB Neurons [q]" {
 	}
 
 	Array.show("Neuron Properties", IdOut, SomaArea, FeretDiameter, MaxBranches, MeanBranches);
+	saveAs("Results", dir + "\\" + substring(tt, 0, dotPos) + "_neuron_properties.csv");
 }
