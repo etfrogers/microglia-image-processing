@@ -1,4 +1,4 @@
-macro "Process DAB Neurons" {
+macro "Process DAB Neurons [q]" {
 	//currently scale is set to inches. This is meaningless, so let's 
 	//remove the scale and use pixels instead
 	
