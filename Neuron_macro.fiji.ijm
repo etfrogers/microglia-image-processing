@@ -38,9 +38,15 @@ macro "Process DAB Neurons [q]" {
 		
 	}
 
+	roiManager("reset");
+	roiManager("Add");
+	roiManager("select", 0);
+	
+	
 	if (inChannels == 3) {
 		run("Stack to RGB");
 		tt = getTitle(); //need to get it again as it has changed after Stack to RGB 
+		roiManager("select", 0)
 	}
 	
 	run("Duplicate...", "title='"+tt+" processed'");
@@ -50,10 +56,6 @@ macro "Process DAB Neurons [q]" {
 
 	dotPos = indexOf(tt, '.');
 	base_file = substring(tt, 0, dotPos);
-	
-	roiManager("reset");
-	roiManager("Add");
-	roiManager("select", 0);
 	roiManager("save selected", dir + base_file + '_processed_roi.zip');
 	
 	
