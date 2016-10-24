@@ -4,7 +4,7 @@ macro "Process DAB Neurons [q]" {
 	
 	//selectWindow("Sholl Results")
 	//run("Close");
-	tt = getTitle(); //need to get it again as it has changed after Stack to RGB 
+	tt = getTitle(); 
 	if (endsWith(tt, '.tif')) {
 		run("Set Scale...", "distance=0 known=0 pixel=1 unit=pixel");
 	}
@@ -39,14 +39,14 @@ macro "Process DAB Neurons [q]" {
 	dotPos = indexOf(tt, '.');
 	base_file = substring(tt, 0, dotPos);
 	
-	run("Set Measurements...", "area redirect=None decimal=3");	
 	roiManager("reset");
 	roiManager("Add");
 	roiManager("select", 0);
 	roiManager("save selected", dir + base_file + '_processed_roi.zip');
 	
+	run("Set Measurements...", "area redirect=None decimal=3");	
 	run("Measure");
-	//TODO Save area
+	saveAs("Results", dir + "\\" + substring(tt, 0, dotPos) + "_roi_properties.csv");
 	run("Make Inverse");
 	//run("Fill", "slice");
 	run("Clear");
