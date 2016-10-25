@@ -156,7 +156,7 @@ macro "Process DAB Microglia [q]" {
 	roiManager("Show None");
 	//roiManager("Show All");
 	
-	//saveAs("Results", dir + File.separator() + base_file + "_roi_stats.csv");
+	//saveAs("Results", dir + File.separator() + base_file + "_all_microglia_stats.csv");
 	IdOut = newArray(0);
 	SomaArea = newArray(0);
 	FeretDiameter = newArray(0);
