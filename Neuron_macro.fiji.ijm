@@ -160,6 +160,9 @@ macro "Process DAB Microglia [q]" {
 	IdOut = newArray(0);
 	SomaArea = newArray(0);
 	FeretDiameter = newArray(0);
+	CentreXPos = newArray(0);
+	CentreYPos = newArray(0);
+	TotalArea = newArray(0);
 	for (ii = 0; ii < nResults; ii++) {
 		ID = ii+1;
 		X = getResult("X", ii);
@@ -192,6 +195,9 @@ macro "Process DAB Microglia [q]" {
 			FeretDiameter = Array.concat(FeretDiameter, FeretDiap);
 			SomaArea = Array.concat(SomaArea, SomaAreaAll[ii]);
 			IdOut = Array.concat(IdOut, ID);
+			TotalArea = Array.concat(TotalArea, Area);
+			CentreXPos = Array.concat(CentreXPos, X);
+			CentreYPos = Array.concat(CentreYPos, Y);
 			Overlay.drawString(ID, Xp, Yp, 0)
 		}
 		roiManager("select", ii)
@@ -219,7 +225,7 @@ macro "Process DAB Microglia [q]" {
 		dummy = newArray(lengthOf(SomaArea)); Array.fill(dummy, 0);
 		toScaled(SomaArea, dummy); toScaled(SomaArea, dummy);
 		
-		Array.show("Microglia Properties", IdOut, SomaArea, FeretDiameter, MaxBranches, MeanBranches);
+		Array.show("Microglia Properties", IdOut, SomaArea, TotalArea, CentreXPos, CentreYPos, FeretDiameter, MaxBranches, MeanBranches);
 		selectWindow("Microglia Properties");
 		saveAs("Results", dir + "\\" + substring(tt, 0, dotPos) + "_microglia_properties.csv");
 	}_
