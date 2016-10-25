@@ -38,8 +38,9 @@ macro "Process DAB Neurons [q]" {
 		dir = substring(dir,0,path_end);
 		
 	}
-	
-	useROI = (selectionType() != -1);
+
+	ROIType = selectionType();
+	useROI = (ROIType != -1);
 	if (!useROI)
 	{
 		Dialog.create("Warning: No selection")
@@ -76,9 +77,10 @@ macro "Process DAB Neurons [q]" {
 	run("Set Measurements...", "area redirect=None decimal=3");	
 	run("Measure");
 	saveAs("Results", dir + "\\" + substring(tt, 0, dotPos) + "_roi_properties.csv");
-	if (useROI) {
+
+	// if we have an ROI and it is not a rectangle, we need to blank the area outside.
+	if (useROI && ROIType != 0) {
 		run("Make Inverse");
-		//run("Fill", "slice");
 		run("Clear");
 		run("Select None");
 	}
