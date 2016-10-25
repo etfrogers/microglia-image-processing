@@ -9,7 +9,7 @@ function open_roi(file) {
 	roiManager("translate", -minx, -miny);
 }
 
-macro "Process DAB Neurons [q]" {
+macro "Process DAB Microglia [q]" {
 	
 	//selectWindow("Sholl Results")
 	//run("Close");
