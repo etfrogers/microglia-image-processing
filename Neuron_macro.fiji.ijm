@@ -27,7 +27,7 @@ macro "Process DAB Microglia [q]" {
 	dir = getDirectory("image");
 	if (lengthOf(dir)==0) {
 		dir = getInfo("Location");
-		path_end = lastIndexOf(dir, '\\');
+		path_end = lastIndexOf(dir, File.separator);
 		if (path_end == -1)
 		{
 			Dialog.create("Error: Could not get path")
@@ -76,7 +76,7 @@ macro "Process DAB Microglia [q]" {
 	
 	run("Set Measurements...", "area redirect=None decimal=3");	
 	run("Measure");
-	saveAs("Results", dir + "\\" + substring(tt, 0, dotPos) + "_roi_properties.csv");
+	saveAs("Results", dir + File.separator() + substring(tt, 0, dotPos) + "_roi_properties.csv");
 
 	// if we have an ROI and it is not a rectangle, we need to blank the area outside.
 	if (useROI && ROIType != 0) {
@@ -156,7 +156,7 @@ macro "Process DAB Microglia [q]" {
 	roiManager("Show None");
 	//roiManager("Show All");
 	
-	//saveAs("Results", dir + "\\" + base_file + "_roi_stats.csv");
+	//saveAs("Results", dir + File.separator() + base_file + "_roi_stats.csv");
 	IdOut = newArray(0);
 	SomaArea = newArray(0);
 	FeretDiameter = newArray(0);
@@ -227,7 +227,7 @@ macro "Process DAB Microglia [q]" {
 		
 		Array.show("Microglia Properties", IdOut, SomaArea, TotalArea, CentreXPos, CentreYPos, FeretDiameter, MaxBranches, MeanBranches);
 		selectWindow("Microglia Properties");
-		saveAs("Results", dir + "\\" + substring(tt, 0, dotPos) + "_microglia_properties.csv");
+		saveAs("Results", dir + File.separator() + substring(tt, 0, dotPos) + "_microglia_properties.csv");
 	}_
 	else 
 	{
