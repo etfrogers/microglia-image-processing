@@ -1,22 +1,12 @@
 clear;
 Ni = 3;
 for ii = 1:Ni
+    fname = ['extra images' filesep 'TN347_' num2str(ii) '_microglia_properties_ext'];
     [IdOut,SomaArea,TotalArea,X,...
-        Y,FeretDiameter,MaxBranches,MeanBranches{ii}] = ...
-        import_microglia_file(['extra images' filesep 'TN347_' num2str(ii) '_microglia_properties.csv']);
+        Y,FeretDiameter,MaxBranches,MeanBranches{ii}, Occupancy{ii}, NN_dist{ii}] = ...
+        import_microglia_file([fname '.csv'],2,Inf,true);
     
-    CircArea = pi*(FeretDiameter/2).^2;
-    Occupancy{ii} = TotalArea./CircArea;
-    points = [X,Y];
     
-    n = size(points,1);
-    x = repmat(points(:,1),1,n);
-    y = repmat(points(:,2),1,n);
-    D = sqrt((x-x').^2+(y-y').^2);
-    
-    diag_inds = diag(true(size(X)));
-    D(diag_inds) = NaN;
-    NN_dist{ii} = nanmin(D,[],2);
     
     figure(ii)
     subplot(3,1,1)

@@ -1,4 +1,6 @@
-function [IdOut,SomaArea,TotalArea,CentreXPos,CentreYPos,FeretDiameter,MaxBranches,MeanBranches] = import_microglia_file(filename, startRow, endRow)
+function [IdOut,SomaArea,TotalArea,CentreXPos,CentreYPos,FeretDiameter,...
+    MaxBranches,MeanBranches,Occupancy,NN_dist] ...
+    = import_microglia_file(filename, startRow, endRow, ext_file)
 %IMPORTFILE Import numeric data from a text file as column vectors.
 %   [IDOUT,SOMAAREA,TOTALAREA,CENTREXPOS,CENTREYPOS,FERETDIAMETER,MAXBRANCHES,MEANBRANCHES]
 %   = IMPORTFILE(FILENAME) Reads data from text file FILENAME for the
@@ -21,6 +23,10 @@ if nargin<=2
     startRow = 2;
     endRow = inf;
 end
+if nargin < 4
+    ext_file = false;
+end
+
 
 %% Format string for each line of text:
 %   column1: double (%f)
@@ -32,8 +38,11 @@ end
 %   column7: double (%f)
 %	column8: double (%f)
 % For more information, see the TEXTSCAN documentation.
-formatSpec = '%f%f%f%f%f%f%f%f%[^\n\r]';
-
+if ext_file 
+    formatSpec = '%f%f%f%f%f%f%f%f%f%f%[^\n\r]';
+else
+    formatSpec = '%f%f%f%f%f%f%f%f%[^\n\r]';
+end
 %% Open the text file.
 fileID = fopen(filename,'r');
 
@@ -68,5 +77,8 @@ CentreYPos = dataArray{:, 5};
 FeretDiameter = dataArray{:, 6};
 MaxBranches = dataArray{:, 7};
 MeanBranches = dataArray{:, 8};
-
+if ext_file
+    Occupancy = dataArray{:, 9};
+    NN_dist = dataArray{:, 10};
+end
 
