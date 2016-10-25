@@ -10,13 +10,14 @@ function open_roi(file) {
 }
 
 macro "Process DAB Neurons [q]" {
-	//currently scale is set to inches. This is meaningless, so let's 
-	//remove the scale and use pixels instead
 	
 	//selectWindow("Sholl Results")
 	//run("Close");
 	tt = getTitle(); 
 	if (endsWith(tt, '.tif')) {
+		//currently scale is set to inches. This is meaningless, so let's 
+		//remove the scale and use pixels instead
+	
 		run("Set Scale...", "distance=0 known=0 pixel=1 unit=pixel");
 	}
 
@@ -37,13 +38,16 @@ macro "Process DAB Neurons [q]" {
 		dir = substring(dir,0,path_end);
 		
 	}
-
-	if (selectionType() == -1)
+	
+	useROI = (selectionType() != -1);
+	if (!useROI)
 	{
 		Dialog.create("Warning: No selection")
 		Dialog.addMessage("There is no region of interest selected. Select OK to use whole image, or cancel to abort");
 		Dialog.show();
-	}
+		makeRectangle(0, 0, inWidth, inHeight);
+	} 
+	
 
 	roiManager("reset");
 	roiManager("Add");
@@ -69,11 +73,12 @@ macro "Process DAB Neurons [q]" {
 	run("Set Measurements...", "area redirect=None decimal=3");	
 	run("Measure");
 	saveAs("Results", dir + "\\" + substring(tt, 0, dotPos) + "_roi_properties.csv");
-	run("Make Inverse");
-	//run("Fill", "slice");
-	run("Clear");
-	run("Select None");
-
+	if (useROI) {
+		run("Make Inverse");
+		//run("Fill", "slice");
+		run("Clear");
+		run("Select None");
+	}
 	run("Colour Deconvolution", "vectors=[H DAB] hide");
 
 	//Analyse H
