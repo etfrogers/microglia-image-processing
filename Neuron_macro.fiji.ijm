@@ -59,7 +59,10 @@ macro "Process DAB Neurons [q]" {
 		tt = getTitle(); //need to get it again as it has changed after Stack to RGB 
 		roiManager("select", 0)
 	}
-	
+
+	if (isOpen(tt + " processed")){
+		close(tt + " processed");
+	}
 	run("Duplicate...", "title='"+tt+" processed'");
 	procWidth = getWidth;
 	procHeight = getHeight;
