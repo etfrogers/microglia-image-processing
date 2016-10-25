@@ -112,6 +112,7 @@ macro "Process DAB Neurons [q]" {
 	newImage(tt + "Body mask" , "8-bit black", procWidth, procHeight, 1);
 	
 	roiManager("deselect"); 
+	setForegroundColor(255,255,255);
 	roiManager("Fill");
 	
 	
