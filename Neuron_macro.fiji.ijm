@@ -219,7 +219,8 @@ macro "Process DAB Microglia [q]" {
 		dummy = newArray(lengthOf(SomaArea)); Array.fill(dummy, 0);
 		toScaled(SomaArea, dummy); toScaled(SomaArea, dummy);
 		
-		Array.show("Neuron Properties", IdOut, SomaArea, FeretDiameter, MaxBranches, MeanBranches);
+		Array.show("Microglia Properties", IdOut, SomaArea, FeretDiameter, MaxBranches, MeanBranches);
+		selectWindow("Microglia Properties");
 		saveAs("Results", dir + "\\" + substring(tt, 0, dotPos) + "_microglia_properties.csv");
 	}_
 	else 
