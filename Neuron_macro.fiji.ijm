@@ -9,6 +9,8 @@ function open_roi(file) {
 	roiManager("translate", -minx, -miny);
 }
 
+
+
 function get_current_dir() {
 	dir = getDirectory("image");
 	if (lengthOf(dir)==0) {
@@ -25,9 +27,76 @@ function get_current_dir() {
 	return dir;
 }
 
+macro "Process from saved ROI" {
+	process_from_saved_roi();
+}
 
-macro "Process DAB Microglia [q]" {
+function process_from_saved_roi() {
+	tt = getTitle(); 
+
+	dir = get_current_dir();
+	dotPos = indexOf(tt, '.');
+	base_file = substring(tt, 0, dotPos);
+	fname = dir + base_file + '_roi_for_processing.zip';
 	
+	if (File.exists(fname)) {
+		roiManager("reset");
+		roiManager("open", fname);
+		roiManager("select", 0);
+		process_dab_microglia();
+		return true;
+	}else
+		return false;
+	
+}
+
+macro "Save ROI for processing [Q]" {
+	tt = getTitle(); //need to get it again as it has changed after Stack to RGB 
+
+	roiManager("reset");
+	roiManager("Add");
+	roiManager("select", 0);
+	dir = get_current_dir();
+	dotPos = indexOf(tt, '.');
+	base_file = substring(tt, 0, dotPos);
+	roiManager("save selected", dir + base_file + '_roi_for_processing.zip');
+}
+
+macro "Process directory" {
+dir = getDirectory("Choose a directory");
+
+
+setBatchMode(true); 
+list = getFileList(dir);
+
+for (i = 0; i < list.length; i++) {
+	fname = list[i];
+	if (endsWith(fname, ".tif"))
+	{ 
+		open(dir+fname);
+		
+		didrun = process_from_saved_roi();
+		
+		close();
+		
+		//if (didrun) 
+			//close();
+		
+	} else if (endsWith(fname, ".vsi"))
+	{
+		run("Bio-Formats Importer", "open=["+dir+fname"] color_mode=Default display_metadata rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
+		process_from_saved_roi();
+		//close();
+		//close();
+	}    
+}
+setBatchMode(false);
+}
+macro "Process DAB Microglia [q]" {
+	process_dab_microglia();
+}
+
+function process_dab_microglia() {
 	//selectWindow("Sholl Results")
 	//run("Close");
 	tt = getTitle(); 
@@ -245,5 +314,7 @@ macro "Process DAB Microglia [q]" {
 		Dialog.addMessage("No suitable microglia found for processing");
 		Dialog.show();
 	}
+
+}
 
 
