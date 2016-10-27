@@ -9,6 +9,23 @@ function open_roi(file) {
 	roiManager("translate", -minx, -miny);
 }
 
+function get_current_dir() {
+	dir = getDirectory("image");
+	if (lengthOf(dir)==0) {
+		dir = getInfo("Location");
+		path_end = lastIndexOf(dir, File.separator);
+		if (path_end == -1)
+		{
+			dir = "";
+		} else {
+			dir = substring(dir,0,path_end);
+		}
+		
+	}
+	return dir;
+}
+
+
 macro "Process DAB Microglia [q]" {
 	
 	//selectWindow("Sholl Results")
@@ -23,20 +40,13 @@ macro "Process DAB Microglia [q]" {
 
 	//print(tt)
 	getDimensions(inWidth, inHeight, inChannels, inSlices, inFrames);
-	
-	dir = getDirectory("image");
-	if (lengthOf(dir)==0) {
-		dir = getInfo("Location");
-		path_end = lastIndexOf(dir, File.separator);
-		if (path_end == -1)
-		{
-			Dialog.create("Error: Could not get path")
-			Dialog.addMessage("Error finding path. Did you use the select the right window?");
-			Dialog.show();
-			return;
-		}
-		dir = substring(dir,0,path_end);
-		
+
+	dir = get_current_dir();
+	if (lengthOf(dir) == 0) {
+		Dialog.create("Error: Could not get path")
+		Dialog.addMessage("Error finding path. Did you use the select the right window?");
+		Dialog.show();
+		return;
 	}
 
 	ROIType = selectionType();
