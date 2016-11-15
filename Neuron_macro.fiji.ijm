@@ -131,7 +131,7 @@ for (i = 0; i < list.length; i++) {
 	{ 
 		open(dir+fname);
 		
-		didrun = process_from_saved_roi(true);
+		didrun = process_from_saved_roi(false);
 		
 		close();
 		
