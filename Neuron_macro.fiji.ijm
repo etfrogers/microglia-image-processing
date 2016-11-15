@@ -1,18 +1,58 @@
 
-function open_roi(file) {
-	roiManager("reset");
-	roiManager("open", file);
-	roiManager("select", 0);
-	Roi.getCoordinates(x, y);
-	Array.getStatistics(x, minx); 
-	Array.getStatistics(y, miny); 
-	roiManager("translate", -minx, -miny);
+function open_roi(file, pull_to_zero, new_window) {
+	if (new_window)
+	{
+		open(file);
+		roiManager("add");
+	} else
+	{
+		roiManager("reset");
+		roiManager("open", file);
+		roiManager("select", 0);
+	}
+	
+	//if required, shift the ROI to the top left of the image - useful when working with cropped images
+	if (pull_to_zero) {
+		Roi.getCoordinates(x, y);
+		Array.getStatistics(x, minx); 
+		Array.getStatistics(y, miny); 
+		roiManager("translate", -minx, -miny);
+	}
+
+	//find a scaling factor file and, if one exists, load it.
+	dotPos = indexOf(file, '.');
+	roi_file = substring(file, 0, dotPos);
+	fname_sf = roi_file+"_sf.txt";
+	if (File.exists(fname_sf)) {
+		s = File.openAsString(fname_sf);
+		scaleFactor = parseInt(s);
+	} else
+	{
+		scaleFactor = 1;
+	}
+
+	//now apply any scaling needed.
+	type = selectionType(); 
+    getSelectionCoordinates(x, y); 
+    
+    for (i = 0; i < x.length; i++) { 
+           x[i] = x[i] * scaleFactor; 
+           y[i] = y[i] * scaleFactor; 
+    } 
+    roiManager("reset");
+
+     
+    makeSelection(type, x, y); 
+    roiManager("add")
+    roiManager("select", 0);
 }
 
 
 
 function get_current_dir() {
 	dir = getDirectory("image");
+
+	//method above fails for vsi files imported with bioformats, so try a backup method
 	if (lengthOf(dir)==0) {
 		dir = getInfo("Location");
 		path_end = lastIndexOf(dir, File.separator);
@@ -28,21 +68,19 @@ function get_current_dir() {
 }
 
 macro "Process from saved ROI" {
-	process_from_saved_roi();
+	process_from_saved_roi(false);
 }
 
-function process_from_saved_roi() {
+function process_from_saved_roi(in_script) {
 	tt = getTitle(); 
 
 	dir = get_current_dir();
 	dotPos = indexOf(tt, '.');
 	base_file = substring(tt, 0, dotPos);
-	fname = dir + base_file + '_roi_for_processing.zip';
+	fname = dir + File.separator() + base_file + '_roi_for_processing.zip';
 	
 	if (File.exists(fname)) {
-		roiManager("reset");
-		roiManager("open", fname);
-		roiManager("select", 0);
+		open_roi(fname, in_script, false); // need to pull to zero if not called interactively, as we now load cropped image in "process_directory"
 		process_dab_microglia();
 		return true;
 	}else
@@ -59,7 +97,18 @@ macro "Save ROI for processing [Q]" {
 	dir = get_current_dir();
 	dotPos = indexOf(tt, '.');
 	base_file = substring(tt, 0, dotPos);
-	roiManager("save selected", dir + base_file + '_roi_for_processing.zip');
+	roiManager("save selected", dir + File.separator() +base_file + '_roi_for_processing.zip');
+	vsiPos = indexOf(tt,"vsi");
+	if (vsiPos >= 0)
+	{
+		hashPos = indexOf(tt,"#");
+		imageNoString = substring(tt, hashPos+1, lengthOf(tt));
+		scaleFactor = pow(2,parseInt(imageNoString)-1);
+		
+		f = File.open(dir + File.separator() + base_file + '_roi_for_processing_sf.txt'); 
+   		print(f, scaleFactor);
+   		File.close(f);
+	}
 }
 
 macro "Process directory" {
@@ -75,7 +124,7 @@ for (i = 0; i < list.length; i++) {
 	{ 
 		open(dir+fname);
 		
-		didrun = process_from_saved_roi();
+		didrun = process_from_saved_roi(true);
 		
 		close();
 		
@@ -84,8 +133,20 @@ for (i = 0; i < list.length; i++) {
 		
 	} else if (endsWith(fname, ".vsi"))
 	{
-		run("Bio-Formats Importer", "open=["+dir+fname"] color_mode=Default display_metadata rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
-		process_from_saved_roi();
+		dotPos = indexOf(fname, '.');
+		base_file = substring(fname, 0, dotPos);
+		roi_fname = dir + File.separator() + base_file + '_roi_for_processing.zip';
+	
+		if (File.exists(roi_fname)) {
+			//newImage("Untitled", "8-bit black", 5000, 5000, 1);
+			open_roi(roi_fname, false, true);
+			
+			x = 0; y = 0; width=1; height =1;
+			Roi.getBounds(x, y, width, height)
+			//close();
+			run("Bio-Formats Importer", "open=[" + dir + File.separator() + fname + "] color_mode=Default crop display_metadata rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT series_1 x_coordinate_1="+x+" y_coordinate_1="+y+" width_1="+width+" height_1="+height);
+			process_from_saved_roi(true);
+		}
 		//close();
 		//close();
 	}    
@@ -154,11 +215,17 @@ function process_dab_microglia() {
 	
 	
 	run("Set Measurements...", "area redirect=None decimal=3");	
+	run("Clear Results");
 	run("Measure");
 	saveAs("Results", dir + File.separator() + substring(tt, 0, dotPos) + "_roi_properties.csv");
 
-	// if we have an ROI and it is not a rectangle, we need to blank the area outside.
-	if (useROI && ROIType != 0) {
+	/* if we have an ROI and it is not a rectangle, we need to blank the area outside.
+	 * A saved rectangle seems to be loaded as a 4-sided polygon, so we need some way of 
+	 * allowing for this
+	 * Use a check that the area of teh ROI is less than the area of the image (width*height)
+	 */
+	ROI_area = getResult("Area", 0);
+	if (useROI && ROIType != 0 && (ROI_area < procWidth*procHeight)) {
 		run("Make Inverse");
 		run("Clear");
 		run("Select None");
@@ -167,7 +234,7 @@ function process_dab_microglia() {
 
 	//Analyse H
 	selectWindow(tt+"-(Colour_1)");
-	open_roi(dir + base_file + '_processed_roi.zip');
+	open_roi(dir + base_file + '_processed_roi.zip', true, false);
 	setAutoThreshold("Triangle");
 	setThreshold(0, 192);
 	//run("Threshold...");
@@ -207,13 +274,13 @@ function process_dab_microglia() {
 
 	//analyse DAB
 	selectWindow(tt+"-(Colour_2)");
-	open_roi(dir + base_file + '_processed_roi.zip');
+	open_roi(dir + base_file + '_processed_roi.zip', true, false);
 	setAutoThreshold("Huang");
 	setOption("BlackBackground", false);
 	run("Convert to Mask");
 	run("Make Binary");
 	run("Close-");
-	open_roi(dir + base_file + '_processed_roi.zip');
+	open_roi(dir + base_file + '_processed_roi.zip', true, false);
 	run("Set Measurements...", "area mean standard modal min centroid center perimeter bounding fit shape feret's integrated median skewness kurtosis area_fraction stack redirect='" + tt + "' decimal=3");
 	run("Analyze Particles...", "size=200-Infinity display exclude clear add");
 	close();
@@ -278,6 +345,7 @@ function process_dab_microglia() {
 			CentreXPos = Array.concat(CentreXPos, X);
 			CentreYPos = Array.concat(CentreYPos, Y);
 			Overlay.drawString(ID, Xp, Yp, 0)
+			
 		}
 		roiManager("select", ii)
 		Overlay.addSelection(col)
@@ -300,7 +368,7 @@ function process_dab_microglia() {
 
 		//SomaArea was calculated on a mask image with no size, so is in pixels.
 		//Need to convert to real units, by calling toScaled twice (as once is a length conversion)
-		// only the x,y version which tajkes two nputs handles arrays, so use a dummy
+		// only the x,y version which takes two inputs handles arrays, so use a dummy
 		dummy = newArray(lengthOf(SomaArea)); Array.fill(dummy, 0);
 		toScaled(SomaArea, dummy); toScaled(SomaArea, dummy);
 		
