@@ -237,10 +237,15 @@ function process_dab_microglia() {
 	/* if we have an ROI and it is not a rectangle, we need to blank the area outside.
 	 * A saved rectangle seems to be loaded as a 4-sided polygon, so we need some way of 
 	 * allowing for this
-	 * Use a check that the area of teh ROI is less than the area of the image (width*height)
+	 * Use a check that the area of the ROI is less than the area of the image (width*height)
+	 * getResult give area in physcial units. I convert to pixels by calling toUnscaled twice (for area)
+	 * The floating point calculation give errors, so make it rn clear if it's less than 99% of the size.
+	 * If this sometimes doesn't clear when it should, the effect should be negligible.
 	 */
 	ROI_area = getResult("Area", 0);
-	if (useROI && ROIType != 0 && (ROI_area < procWidth*procHeight)) {
+	toUnscaled(ROI_area); toUnscaled(ROI_area);
+	
+	if (useROI && ROIType != 0 && (ROI_area < (procWidth*procHeight*0.99))) {
 		run("Make Inverse");
 		run("Clear");
 		run("Select None");
