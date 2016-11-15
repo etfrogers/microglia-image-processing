@@ -108,6 +108,13 @@ macro "Save ROI for processing [Q]" {
 		f = File.open(dir + File.separator() + base_file + '_roi_for_processing_sf.txt'); 
    		print(f, scaleFactor);
    		File.close(f);
+
+   		Roi.getBounds(x, y, width, height)
+   		bounds_str = "" + x + ',' + y + ',' + width + ',' + height;
+   		f = File.open(dir + File.separator() + base_file + '_roi_for_processing_bounds.txt'); 
+   		print(f, bounds_str);
+   		File.close(f);
+
 	}
 }
 
@@ -139,10 +146,18 @@ for (i = 0; i < list.length; i++) {
 	
 		if (File.exists(roi_fname)) {
 			//newImage("Untitled", "8-bit black", 5000, 5000, 1);
-			open_roi(roi_fname, false, true);
+			//open_roi(roi_fname, false, true);
+
+			s = File.openAsString(dir + File.separator() + base_file + '_roi_for_processing_sf.txt');
+			sf = parseInt(s);
 			
-			x = 0; y = 0; width=1; height =1;
-			Roi.getBounds(x, y, width, height)
+			bounds_str = File.openAsString(dir + File.separator() + base_file + '_roi_for_processing_bounds.txt');
+			bounds = split(bounds_str, ',');
+			x = parseInt(bounds[0]); y = parseInt(bounds[1]); 
+			width = parseInt(bounds[2]); height = parseInt(bounds[3]);
+
+			x = x*sf; y = y*sf; width = width*sf; height = height*sf; 
+			
 			//close();
 			run("Bio-Formats Importer", "open=[" + dir + File.separator() + fname + "] color_mode=Default crop display_metadata rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT series_1 x_coordinate_1="+x+" y_coordinate_1="+y+" width_1="+width+" height_1="+height);
 			process_from_saved_roi(true);
