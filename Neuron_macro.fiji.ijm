@@ -375,6 +375,9 @@ function process_dab_microglia() {
 		//Overlay.drawString(ID, X, Y, 0)
 	}
 	Overlay.show();
+	run("Flatten");
+	saveAs("Tiff",  dir + File.separator() + subdir + File.separator() + substring(tt, 0, dotPos) + "processed_image.tif");
+
 	if (isOpen("Sholl Results"))
 		selectWindow("Sholl Results"); 
    		IJ.renameResults("Results"); 
