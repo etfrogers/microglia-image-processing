@@ -99,7 +99,7 @@ function process_from_saved_roi(in_script) {
 	
 	if (File.exists(fname)) {
 		open_roi(fname, in_script, false); // need to pull to zero if not called interactively, as we now load cropped image in "process_directory"
-		subdir = "processed_file_" + get_timestamp();
+		subdir = "processed_files_" + get_timestamp();
 		File.makeDirectory(dir+File.separator()+subdir);
 		process_dab_microglia(subdir);
 		return true;
