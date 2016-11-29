@@ -71,6 +71,24 @@ macro "Process from saved ROI" {
 	process_from_saved_roi(false);
 }
 
+function get_timestamp() {
+	
+     getDateAndTime(year, month, dayOfWeek, dayOfMonth, hour, minute, second, msec);
+     TimeString = ""+year;
+     if (month<10) {TimeString = TimeString+"0";}
+     TimeString = TimeString+month;
+     if (dayOfMonth<10) {TimeString = TimeString+"0";}
+     TimeString = TimeString+dayOfMonth+"_";
+     if (hour<10) {TimeString = TimeString+"0";}
+     TimeString = TimeString+hour;
+     if (minute<10) {TimeString = TimeString+"0";}
+     TimeString = TimeString+minute;
+     if (second<10) {TimeString = TimeString+"0";}
+     TimeString = TimeString+second;
+     return TimeString;
+  }
+}
+
 function process_from_saved_roi(in_script) {
 	tt = getTitle(); 
 
@@ -81,7 +99,9 @@ function process_from_saved_roi(in_script) {
 	
 	if (File.exists(fname)) {
 		open_roi(fname, in_script, false); // need to pull to zero if not called interactively, as we now load cropped image in "process_directory"
-		process_dab_microglia();
+		subdir = "processed_file_" + get_timestamp();
+		File.makeDirectory(dir+File.separator()+subdir);
+		process_dab_microglia(subdir);
 		return true;
 	}else
 		return false;
@@ -169,10 +189,10 @@ for (i = 0; i < list.length; i++) {
 setBatchMode(false);
 }
 macro "Process DAB Microglia [q]" {
-	process_dab_microglia();
+	process_dab_microglia("");
 }
 
-function process_dab_microglia() {
+function process_dab_microglia(subdir) {
 	//selectWindow("Sholl Results")
 	//run("Close");
 	tt = getTitle(); 
@@ -226,13 +246,13 @@ function process_dab_microglia() {
 
 	dotPos = indexOf(tt, '.');
 	base_file = substring(tt, 0, dotPos);
-	roiManager("save selected", dir + base_file + '_processed_roi.zip');
+	roiManager("save selected", dir + File.separator() + subdir + File.separator() + base_file + '_processed_roi.zip');
 	
 	
 	run("Set Measurements...", "area redirect=None decimal=3");	
 	run("Clear Results");
 	run("Measure");
-	saveAs("Results", dir + File.separator() + substring(tt, 0, dotPos) + "_roi_properties.csv");
+	saveAs("Results", dir + File.separator() + subdir + File.separator() + substring(tt, 0, dotPos) + "_roi_properties.csv");
 
 	/* if we have an ROI and it is not a rectangle, we need to blank the area outside.
 	 * A saved rectangle seems to be loaded as a 4-sided polygon, so we need some way of 
@@ -254,7 +274,7 @@ function process_dab_microglia() {
 
 	//Analyse H
 	selectWindow(tt+"-(Colour_1)");
-	open_roi(dir + base_file + '_processed_roi.zip', true, false);
+	open_roi(dir + File.separator() + base_file + '_processed_roi.zip', true, false);
 	setAutoThreshold("Triangle");
 	setThreshold(0, 192);
 	//run("Threshold...");
@@ -294,13 +314,13 @@ function process_dab_microglia() {
 
 	//analyse DAB
 	selectWindow(tt+"-(Colour_2)");
-	open_roi(dir + base_file + '_processed_roi.zip', true, false);
+	open_roi(dir + File.separator() + base_file + '_processed_roi.zip', true, false);
 	setAutoThreshold("Huang");
 	setOption("BlackBackground", false);
 	run("Convert to Mask");
 	run("Make Binary");
 	run("Close-");
-	open_roi(dir + base_file + '_processed_roi.zip', true, false);
+	open_roi(dir + File.separator() + base_file + '_processed_roi.zip', true, false);
 	run("Set Measurements...", "area mean standard modal min centroid center perimeter bounding fit shape feret's integrated median skewness kurtosis area_fraction stack redirect='" + tt + "' decimal=3");
 	run("Analyze Particles...", "size=200-Infinity display exclude clear add");
 	close();
@@ -397,7 +417,7 @@ function process_dab_microglia() {
 		
 		Array.show("Microglia Properties", IdOut, SomaArea, TotalArea, CentreXPos, CentreYPos, FeretDiameter, MaxBranches, MeanBranches);
 		selectWindow("Microglia Properties");
-		saveAs("Results", dir + File.separator() + substring(tt, 0, dotPos) + "_microglia_properties.csv");
+		saveAs("Results", dir + File.separator() + subdir + File.separator() + substring(tt, 0, dotPos) + "_microglia_properties.csv");
 	}_
 	else 
 	{
