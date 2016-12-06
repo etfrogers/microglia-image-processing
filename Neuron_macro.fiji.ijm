@@ -274,7 +274,7 @@ function process_dab_microglia(subdir) {
 
 	//Analyse H
 	selectWindow(tt+"-(Colour_1)");
-	open_roi(dir + File.separator() + base_file + '_processed_roi.zip', true, false);
+	open_roi(dir + File.separator() + subdir + File.separator() + base_file + '_processed_roi.zip', true, false);
 	setAutoThreshold("Triangle");
 	setThreshold(0, 192);
 	//run("Threshold...");
@@ -314,13 +314,13 @@ function process_dab_microglia(subdir) {
 
 	//analyse DAB
 	selectWindow(tt+"-(Colour_2)");
-	open_roi(dir + File.separator() + base_file + '_processed_roi.zip', true, false);
+	open_roi(dir + File.separator() + subdir + File.separator() + base_file + '_processed_roi.zip', true, false);
 	setAutoThreshold("Huang");
 	setOption("BlackBackground", false);
 	run("Convert to Mask");
 	run("Make Binary");
 	run("Close-");
-	open_roi(dir + File.separator() + base_file + '_processed_roi.zip', true, false);
+	open_roi(dir + File.separator() + subdir + File.separator() + base_file + '_processed_roi.zip', true, false);
 	run("Set Measurements...", "area mean standard modal min centroid center perimeter bounding fit shape feret's integrated median skewness kurtosis area_fraction stack redirect='" + tt + "' decimal=3");
 	run("Analyze Particles...", "size=200-Infinity display exclude clear add");
 	close();
